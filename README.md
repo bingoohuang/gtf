@@ -1,31 +1,35 @@
 # gtf - a useful set of Golang Template Functions
-[![Build Status](https://travis-ci.org/leekchan/gtf.svg?branch=master)](https://travis-ci.org/leekchan/gtf)
-[![Coverage Status](https://coveralls.io/repos/leekchan/gtf/badge.svg?branch=master&service=github)](https://coveralls.io/github/leekchan/gtf?branch=master)
-[![GoDoc](https://godoc.org/github.com/leekchan/gtf?status.svg)](https://godoc.org/github.com/leekchan/gtf)
 
-gtf is a useful set of Golang Template Functions. The goal of this project is implementing all built-in template filters of Django & Jinja2. 
+[![Build Status](https://travis-ci.org/bingoohuang/gtf.svg?branch=master)](https://travis-ci.org/bingoohuang/gtf)
+[![Coverage Status](https://coveralls.io/repos/bingoohuang/gtf/badge.svg?branch=master&service=github)](https://coveralls.io/github/bingoohuang/gtf?branch=master)
+[![GoDoc](https://godoc.org/github.com/bingoohuang/gtf?status.svg)](https://godoc.org/github.com/bingoohuang/gtf)
+
+gtf is a useful set of Golang Template Functions. The goal of this project is implementing all built-in template filters
+of Django & Jinja2.
 
 ## Basic usages
 
 ### Method 1 : Uses gtf.New
 
-gtf.New is a wrapper function of [template.New](https://golang.org/pkg/html/template/#New). It automatically adds the gtf functions to the template's function map and returns [template.Template](http://golang.org/pkg/html/template/#Template).
+gtf.New is a wrapper function of [template.New](https://golang.org/pkg/html/template/#New). It automatically adds the
+gtf functions to the template's function map and
+returns [template.Template](http://golang.org/pkg/html/template/#Template).
 
 ```Go
 package main
 
 import (
 	"net/http"
-	"github.com/leekchan/gtf"
+	"github.com/bingoohuang/gtf"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		filesize := 554832114
 		tpl, _ := gtf.New("test").Parse("{{ . | filesizeformat }}")
 		tpl.Execute(w, filesize)
 	})
-    http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", nil)
 }
 ```
 
@@ -39,17 +43,17 @@ package main
 import (
 	"net/http"
 	"html/template"
-	
-	"github.com/leekchan/gtf"
+
+	"github.com/bingoohuang/gtf"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		filesize := 554832114
-		tpl, _ := template.New("test").Funcs(gtf.GtfFuncMap).Parse("{{ . | filesizeformat }}")
+		tpl, _ := template.New("test").Funcs(gtf.HtmlFuncMap).Parse("{{ . | filesizeformat }}")
 		tpl.Execute(w, filesize)
 	})
-    http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", nil)
 }
 ```
 
@@ -61,57 +65,40 @@ package main
 import (
 	"os"
 	"text/template"
-	
-	"github.com/leekchan/gtf"
+
+	"github.com/bingoohuang/gtf"
 )
 
 func main() {
 	filesize := 554832114
-	tpl, _ := template.New("test").Funcs(gtf.GtfTextFuncMap).Parse("{{ . | filesizeformat }}")
+	tpl, _ := template.New("test").Funcs(gtf.TextFuncMap).Parse("{{ . | filesizeformat }}")
 	tpl.Execute(os.Stdout, filesize)
 }
 ```
 
-
 ## Integration
 
-You can use gtf with any web frameworks (revel, beego, martini, gin, etc) which use the Golang's built-in [html/template package](http://golang.org/pkg/html/template/).
-
+You can use gtf with any web frameworks (revel, beego, martini, gin, etc) which use the Golang's
+built-in [html/template package](http://golang.org/pkg/html/template/).
 
 ### Injection
 
-You can inject gtf functions into your webframework's original FuncMap by calling "gtf.Inject" / "gtf.ForceInject" / "gtf.InjectWithPrefix".
+You can inject gtf functions into your webframework's original FuncMap by calling "gtf.Inject" / "gtf.ForceInject" / "
+gtf.InjectWithPrefix".
 
 #### gtf.Inject
 
-gtf.Inject injects gtf functions into the passed FuncMap. It does not overwrite the original function which have same name as a gtf function.
+gtf.Inject injects gtf functions into the passed FuncMap. The second argument force determines whether it overwrite the
+original function which have same name as a gtf function.
 
 ```Go
-Inject(originalFuncMap)
+Inject(originalFuncMap, true, "gtf_") // prefix : gtf_
 ```
-
-#### gtf.ForceInject
-
-gtf.ForceInject injects gtf functions into the passed FuncMap. It overwrites the original function which have same name as a gtf function.
-
-```Go
-ForceInject(originalFuncMap)
-```
-
-
-#### gtf.InjectWithPrefix
-
-gtf.Inject injects gtf functions into the passed FuncMap. It prefixes the gtf functions with the specified prefix. If there are many function which have same names as the gtf functions, you can use this function to prefix the gtf functions.
-
-
-```Go
-InjectWithPrefix(originalFuncMap, "gtf_") // prefix : gtf_
-```
-
 
 ### [Revel](http://revel.github.io/) integration
 
-Calling "gtf.Inject(revel.TemplateFuncs)" injects gtf functions into revel.TemplateFuncs. Just add this one line in init() of init.go, and use gtf functions in your templates! :)
+Calling "gtf.Inject(revel.TemplateFuncs)" injects gtf functions into revel.TemplateFuncs. Just add this one line in
+init() of init.go, and use gtf functions in your templates! :)
 
 ```Go
 // init.go
@@ -119,21 +106,21 @@ Calling "gtf.Inject(revel.TemplateFuncs)" injects gtf functions into revel.Templ
 package app
 
 import "github.com/revel/revel"
-import "github.com/leekchan/gtf"
+import "github.com/bingoohuang/gtf"
 
 func init() {
-    gtf.Inject(revel.TemplateFuncs)
+	gtf.Inject(revel.TemplateFuncs)
 }
 ```
 
-
 ### [Beego](http://beego.me/) integration
 
-Add these three lines before "beego.Run()" in your main() function. This code snippet will inject gtf functions into beego's FuncMap.
+Add these three lines before "beego.Run()" in your main() function. This code snippet will inject gtf functions into
+beego's FuncMap.
 
 ```Go
 for k, v := range gtf.GtfFuncMap {
-    beego.AddFuncMap(k, v)
+	beego.AddFuncMap(k, v)
 }
 ```
 
@@ -143,59 +130,58 @@ for k, v := range gtf.GtfFuncMap {
 package main
 
 import (
-    "github.com/astaxie/beego"
-    "github.com/beego/i18n"
+	"github.com/astaxie/beego"
+	"github.com/beego/i18n"
 
-    "github.com/beego/samples/WebIM/controllers"
-    
-    "github.com/leekchan/gtf"
+	"github.com/beego/samples/WebIM/controllers"
+
+	"github.com/bingoohuang/gtf"
 )
 
 const (
-    APP_VER = "0.1.1.0227"
+	APP_VER = "0.1.1.0227"
 )
 
 func main() {
-    beego.Info(beego.AppName, APP_VER)
+	beego.Info(beego.AppName, APP_VER)
 
-    // Register routers.
-    beego.Router("/", &controllers.AppController{})
-    // Indicate AppController.Join method to handle POST requests.
-    beego.Router("/join", &controllers.AppController{}, "post:Join")
+	// Register routers.
+	beego.Router("/", &controllers.AppController{})
+	// Indicate AppController.Join method to handle POST requests.
+	beego.Router("/join", &controllers.AppController{}, "post:Join")
 
-    // Long polling.
-    beego.Router("/lp", &controllers.LongPollingController{}, "get:Join")
-    beego.Router("/lp/post", &controllers.LongPollingController{})
-    beego.Router("/lp/fetch", &controllers.LongPollingController{}, "get:Fetch")
+	// Long polling.
+	beego.Router("/lp", &controllers.LongPollingController{}, "get:Join")
+	beego.Router("/lp/post", &controllers.LongPollingController{})
+	beego.Router("/lp/fetch", &controllers.LongPollingController{}, "get:Fetch")
 
-    // WebSocket.
-    beego.Router("/ws", &controllers.WebSocketController{})
-    beego.Router("/ws/join", &controllers.WebSocketController{}, "get:Join")
+	// WebSocket.
+	beego.Router("/ws", &controllers.WebSocketController{})
+	beego.Router("/ws/join", &controllers.WebSocketController{}, "get:Join")
 
-    // Register template functions.
-    beego.AddFuncMap("i18n", i18n.Tr)
-    
-    // Register gtf functions.
-    for k, v := range gtf.GtfFuncMap {
-        beego.AddFuncMap(k, v)
-    }
+	// Register template functions.
+	beego.AddFuncMap("i18n", i18n.Tr)
 
-    beego.Run()
+	// Register gtf functions.
+	for k, v := range gtf.GtfFuncMap {
+		beego.AddFuncMap(k, v)
+	}
+
+	beego.Run()
 }
 ```
-
 
 ### Other web frameworks (TODO)
 
 I will add the detailed integration guides for other web frameworks soon!
 
-
 ## Safety
-All gtf functions have their own recovery logics. The basic behavior of the recovery logic is silently swallowing all unexpected panics. All gtf functions would not make any panics in runtime. (**Production Ready!**)
 
-If a panic occurs inside a gtf function, the function will silently swallow the panic and return "" (empty string). If you meet any unexpected empty output, [please make an issue](https://github.com/leekchan/gtf/issues/new)! :)
+All gtf functions have their own recovery logics. The basic behavior of the recovery logic is silently swallowing all
+unexpected panics. All gtf functions would not make any panics in runtime. (**Production Ready!**)
 
-
+If a panic occurs inside a gtf function, the function will silently swallow the panic and return "" (empty string). If
+you meet any unexpected empty output, [please make an issue](https://github.com/bingoohuang/gtf/issues/new)! :)
 
 ## Reference
 
@@ -230,8 +216,6 @@ If a panic occurs inside a gtf function, the function will silently swallow the 
 * [random](#random)
 * [striptags](#striptags)
 
-
-
 #### replace
 
 Removes all values of arg from the given string.
@@ -242,9 +226,8 @@ Removes all values of arg from the given string.
 ```
 {{ value | replace " " }}
 ```
+
 If value is "The Go Programming Language", the output will be "TheGoProgrammingLanguage".
-
-
 
 #### findreplace
 
@@ -256,9 +239,8 @@ Replaces all instances of the first argument with the second.
 ```
 {{ value | findreplace " " "-" }}
 ```
+
 If value is "The Go Programming Language", the output will be "The-Go-Programming-Language".
-
-
 
 #### default
 
@@ -272,9 +254,8 @@ If value is "The Go Programming Language", the output will be "The-Go-Programmin
 ```
 {{ value | default "default value" }}
 ```
+
 If value is ""(the empty string), the output will be "default value".
-
-
 
 #### length
 
@@ -287,9 +268,8 @@ This function also supports unicode strings.
 ```
 {{ value | length }}
 ```
+
 If value is "The Go Programming Language", the output will be 27.
-
-
 
 #### lower
 
@@ -300,9 +280,8 @@ Converts the given string into all lowercase.
 ```
 {{ value | lower }}
 ```
+
 If value is "The Go Programming Language", the output will be "the go programming language".
-
-
 
 #### upper
 
@@ -313,13 +292,13 @@ Converts the given string into all uppercase.
 ```
 {{ value | upper }}
 ```
+
 If value is "The Go Programming Language", the output will be "THE GO PROGRAMMING LANGUAGE".
-
-
 
 #### truncatechars
 
-Truncates the given string if it is longer than the specified number of characters. Truncated strings will end with a translatable ellipsis sequence ("...")
+Truncates the given string if it is longer than the specified number of characters. Truncated strings will end with a
+translatable ellipsis sequence ("...")
 
 * supported value types : string
 
@@ -335,12 +314,14 @@ This function also supports unicode strings.
 
 1. If input is {{ "The Go Programming Language" | truncatechars 12 }}, the output will be "The Go Pr...". (basic string)
 1. If input is {{ "안녕하세요. 반갑습니다." | truncatechars 12 }}, the output will be "안녕하세요. 반갑...". (unicode)
-1. If input is {{ "안녕하세요. The Go Programming Language" | truncatechars 30 }}, the output will be "안녕하세요. The Go Programming L...". (unicode)
-1. If input is {{ "The" | truncatechars 30 }}, the output will be "The". (If the length of the given string is shorter than the argument, the output will be the original string.)
-1. If input is {{ "The Go Programming Language" | truncatechars 3 }}, the output will be "The". (If the argument is less than or equal to 3, the output will not contain "...".)
-1. If input is {{ "The Go" | truncatechars -1 }}, the output will be "The Go". (If the argument is less than 0, the argument will be ignored.)
-
-
+1. If input is {{ "안녕하세요. The Go Programming Language" | truncatechars 30 }}, the output will be "안녕하세요. The Go
+   Programming L...". (unicode)
+1. If input is {{ "The" | truncatechars 30 }}, the output will be "The". (If the length of the given string is shorter
+   than the argument, the output will be the original string.)
+1. If input is {{ "The Go Programming Language" | truncatechars 3 }}, the output will be "The". (If the argument is less
+   than or equal to 3, the output will not contain "...".)
+1. If input is {{ "The Go" | truncatechars -1 }}, the output will be "The Go". (If the argument is less than 0, the
+   argument will be ignored.)
 
 #### urlencode
 
@@ -352,9 +333,8 @@ Escapes the given string for use in a URL.
 {{ value | urlencode }}
 ```
 
-If value is "http://www.example.org/foo?a=b&c=d", the output will be "http%3A%2F%2Fwww.example.org%2Ffoo%3Fa%3Db%26c%3Dd".
-
-
+If value is "http://www.example.org/foo?a=b&c=d", the output will be "
+http%3A%2F%2Fwww.example.org%2Ffoo%3Fa%3Db%26c%3Dd".
 
 #### wordcount
 
@@ -367,8 +347,6 @@ Returns the number of words.
 ```
 
 If value is "The Go Programming Language", the output will be 4.
-
-
 
 #### divisibleby
 
@@ -386,8 +364,6 @@ Returns true if the value is divisible by the argument.
 1. If input is {{ 21 | divisibleby 3 }}, the output will be true.
 1. If input is {{ 21 | divisibleby 4 }}, the output will be false.
 1. If input is {{ 3.0 | divisibleby 1.5 }}, the output will be true.
-
-
 
 #### lengthis
 
@@ -407,19 +383,15 @@ This function also supports unicode strings.
 1. If input is {{ "Go" | lengthis 2 }}, the output will be true.
 1. If input is {{ "안녕하세요. Go!" | lengthis 10 }}, the output will be true.
 
-
-
 #### trim
 
-Strips leading and trailing whitespace. 
+Strips leading and trailing whitespace.
 
 * supported value types : string
 
 ```
 {{ value | trim }}
 ```
-
-
 
 #### capfirst
 
@@ -433,13 +405,11 @@ Capitalizes the first character of the given string.
 
 If value is "the go programming language", the output will be "The go programming language".
 
-
-
 #### pluralize
 
 Returns a plural suffix if the value is not 1. You can specify both a singular and plural suffix, separated by a comma.
 
-**Argument:** singular and plural suffix. 
+**Argument:** singular and plural suffix.
 
 1. "s" --> specify a singular suffix.
 2. "y,ies" --> specify both a singular and plural suffix.
@@ -460,8 +430,6 @@ Returns a plural suffix if the value is not 1. You can specify both a singular a
 4. 1 cand{{ 1 | pluralize "y,ies" }} --> 1 candy
 5. 2 cand{{ 2 | pluralize "y,ies" }} --> 2 candies
 
-
-
 #### yesno
 
 Returns argument strings according to the given boolean value.
@@ -475,10 +443,9 @@ Returns argument strings according to the given boolean value.
 {{ value | yesno "yes!" "no!" }}
 ```
 
-
 #### rjust
 
-Right-aligns the given string in a field of a given width. This function also supports unicode strings. 
+Right-aligns the given string in a field of a given width. This function also supports unicode strings.
 
 * supported value types : string
 
@@ -491,11 +458,9 @@ Right-aligns the given string in a field of a given width. This function also su
 1. If input is {{ "Go" | rjust 10 }}, the output will be "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Go".
 1. If input is {{ "안녕하세요" | rjust 10 }}, the output will be "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;안녕하세요".
 
-
-
 #### ljust
 
-Left-aligns the given string in a field of a given width. This function also supports unicode strings. 
+Left-aligns the given string in a field of a given width. This function also supports unicode strings.
 
 * supported value types : string
 
@@ -508,11 +473,9 @@ Left-aligns the given string in a field of a given width. This function also sup
 1. If input is {{ "Go" | ljust 10 }}, the output will be "Go&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".
 1. If input is {{ "안녕하세요" | ljust 10 }}, the output will be "안녕하세요&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;".
 
-
-
 #### center
 
-Centers the given string in a field of a given width. This function also supports unicode strings. 
+Centers the given string in a field of a given width. This function also supports unicode strings.
 
 * supported value types : string
 
@@ -524,8 +487,6 @@ Centers the given string in a field of a given width. This function also support
 
 1. If input is {{ "Go" | center 10 }}, the output will be "&nbsp;&nbsp;&nbsp;&nbsp;Go&nbsp;&nbsp;&nbsp;&nbsp;".
 1. If input is {{ "안녕하세요" | center 10 }}, the output will be "&nbsp;&nbsp;안녕하세요&nbsp;&nbsp;&nbsp;".
-
-
 
 #### filesizeformat
 
@@ -548,11 +509,9 @@ Formats the value like a human readable file size.
 1. {{ 14868735121365 | filesizeformat }} --> "13.5 TB"
 1. {{ 1486873512136523 | filesizeformat }} --> "1.3 PB"
 
-
-
 #### apnumber
 
-For numbers 1-9, returns the number spelled out. Otherwise, returns the number. 
+For numbers 1-9, returns the number spelled out. Otherwise, returns the number.
 
 * supported value types : int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64
 
@@ -569,8 +528,6 @@ For numbers 1-9, returns the number spelled out. Otherwise, returns the number.
 1. {{ 10 | apnumber }} --> 10
 1. {{ 1000 | apnumber }} --> 1000
 
-
-
 #### intcomma
 
 Converts an integer to a string containing commas every three digits.
@@ -586,8 +543,6 @@ Converts an integer to a string containing commas every three digits.
 1. {{ 1000 | intcomma }} --> 1,000
 1. {{ -1000 | intcomma }} --> -1,000
 1. {{ 1578652313 | intcomma }} --> 1,578,652,313
-
-
 
 #### ordinal
 
@@ -609,8 +564,6 @@ Converts an integer to its ordinal as a string.
 1. {{ 13 | ordinal }} --> 13th
 1. {{ 14 | ordinal }} --> 14th
 
-
-
 #### first
 
 Returns the first item in the given value.
@@ -629,8 +582,6 @@ This function also supports unicode strings.
 1. If value is the string "안녕하세요", the output will be the string "안". (unicode)
 1. If value is the slice []string{"go", "python", "ruby"}, the output will be the string "go".
 1. If value is the array [3]string{"go", "python", "ruby"}, the output will be the string "go".
-
-
 
 #### last
 
@@ -651,12 +602,10 @@ This function also supports unicode strings.
 1. If value is the slice []string{"go", "python", "ruby"}, the output will be the string "ruby".
 1. If value is the array [3]string{"go", "python", "ruby"}, the output will be the string "ruby".
 
-
-
-
 #### join
 
-Concatenates the given slice to create a single string. The given argument (separator) will be placed between elements in the resulting string.
+Concatenates the given slice to create a single string. The given argument (separator) will be placed between elements
+in the resulting string.
 
 ```
 {{ value | join " " }}
@@ -664,12 +613,10 @@ Concatenates the given slice to create a single string. The given argument (sepa
 
 If value is the slice []string{"go", "python", "ruby"}, the output will be the string "go python ruby"
 
-
-
-
 #### slice
 
-Returns a slice of the given value. The first argument is the start position, and the second argument is the end position.
+Returns a slice of the given value. The first argument is the start position, and the second argument is the end
+position.
 
 * supported value types : string, slice
 * supported argument types : int
@@ -685,9 +632,6 @@ This function also supports unicode strings.
 1. If input is {{ "The go programming language" | slice 0 6 }}, the output will be "The go".
 1. If input is {{ "안녕하세요" | slice 0 2 }}, the output will be "안녕". (unicode)
 1. If input is {{ []string{"go", "python", "ruby"} | slice 0 2 }}, the output will be []string{"go", "python"}.
-
-
-
 
 #### random
 
@@ -708,9 +652,6 @@ This function also supports unicode strings.
 1. If input is {{ []string{"go", "python", "ruby"} | random }}, the output could be "go".
 1. If input is {{ [3]string{"go", "python", "ruby"} | random }}, the output could be "go".
 
-
-
-
 #### randomintrange
 
 Returns a random integer value between the first and second argument
@@ -724,9 +665,6 @@ Returns a random integer value between the first and second argument
 **Examples**
 
 1. If input is {{ randomintrange 0 5 }}, the output could be "4".
-
-
-
 
 #### striptags
 
@@ -743,14 +681,14 @@ This function also supports unicode strings.
 **Examples**
 
 1. If input is {{ "&lt;strong&gt;text&lt;/strong&gt;" | striptags }}, the output will be "text".
-1. If input is {{ "&lt;strong&gt;&lt;em&gt;&#50504;&#45397;&#54616;&#49464;&#50836;&lt;/em&gt;&lt;/strong&gt;" | striptags }}, the output will be "안녕하세요". (unicode)
-1. If input is {{ "&lt;a href="/link"&gt;text &lt;strong&gt;&#50504;&#45397;&#54616;&#49464;&#50836;&lt;/strong&gt;&lt;/a&gt;" | striptags }}, the output will be "text 안녕하세요".
-
-
-
-
+1. If input is {{ "&lt;strong&gt;&lt;em&gt;&#50504;&#45397;&#54616;&#49464;&#50836;&lt;/em&gt;&lt;/strong&gt;" |
+   striptags }}, the output will be "안녕하세요". (unicode)
+1. If input is {{ "&lt;a href="/link"&gt;text
+   &lt;strong&gt;&#50504;&#45397;&#54616;&#49464;&#50836;&lt;/strong&gt;&lt;/a&gt;" | striptags }}, the output will be "
+   text 안녕하세요".
 
 ## Goal
+
 The first goal is implementing all built-in template filters of Django & Jinja2.
 
 * [Django | Built-in filter reference](https://docs.djangoproject.com/en/1.8/ref/templates/builtins/#built-in-filter-reference)
@@ -758,6 +696,6 @@ The first goal is implementing all built-in template filters of Django & Jinja2.
 
 The final goal is building a ultimate set which contains hundreds of useful template functions.
 
-
 ## Contributing
+
 I love pull requests :) You can add any useful template functions by submitting a pull request!

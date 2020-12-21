@@ -7,6 +7,19 @@ import (
 	"testing"
 )
 
+func TestRecover(t *testing.T) {
+	f := func() string {
+		defer recovery()
+
+		panic("oh")
+	}
+
+	a := f()
+	if a != "" {
+		t.Errorf("Expected (empty), got %s", a)
+	}
+}
+
 func AssertEqual(t *testing.T, buffer *bytes.Buffer, testString string) {
 	if buffer.String() != testString {
 		t.Errorf("Expected %s, got %s", testString, buffer.String())
@@ -26,7 +39,7 @@ func AssertIntInRange(t *testing.T, buffer *bytes.Buffer, min, max int) {
 }
 
 func ParseTest(buffer *bytes.Buffer, body string, data interface{}) {
-	tpl := New("test")
+	tpl := NewHtmlTemplate("test")
 	tpl.Parse(body)
 	tpl.Execute(buffer, data)
 }
@@ -392,7 +405,7 @@ func TestGtfFuncMap(t *testing.T) {
 func TestInject(t *testing.T) {
 	var buffer bytes.Buffer
 
-	var originalFuncMap = template.FuncMap{
+	originalFuncMap := template.FuncMap{
 		// originalFuncMap is made for test purpose.
 		// It tests that Inject function does not overwrite the original functions
 		// which have same names.
@@ -409,7 +422,7 @@ func TestInject(t *testing.T) {
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | lower }}", "")
 	AssertEqual(t, &buffer, "foo")
 
-	Inject(originalFuncMap) // Inject!
+	Inject(originalFuncMap, false, "") // Inject!
 
 	// Check if Inject function does not overwrite the original functions which have same names.
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | length }}", "")
@@ -429,7 +442,7 @@ func TestInject(t *testing.T) {
 func TestForceInject(t *testing.T) {
 	var buffer bytes.Buffer
 
-	var originalFuncMap = template.FuncMap{
+	originalFuncMap := template.FuncMap{
 		"length": func(value interface{}) int {
 			return -1
 		},
@@ -443,7 +456,7 @@ func TestForceInject(t *testing.T) {
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | lower }}", "")
 	AssertEqual(t, &buffer, "foo")
 
-	ForceInject(originalFuncMap) // ForceInject!
+	Inject(originalFuncMap, true, "") // ForceInject!
 
 	// Check if ForceInject function overwrites the original functions which have same names.
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | length }}", "")
@@ -463,7 +476,7 @@ func TestForceInject(t *testing.T) {
 func TestInjectWithPrefix(t *testing.T) {
 	var buffer bytes.Buffer
 
-	var originalFuncMap = template.FuncMap{
+	originalFuncMap := template.FuncMap{
 		"length": func(value interface{}) int {
 			return -1
 		},
@@ -477,7 +490,7 @@ func TestInjectWithPrefix(t *testing.T) {
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | lower }}", "")
 	AssertEqual(t, &buffer, "foo")
 
-	InjectWithPrefix(originalFuncMap, "gtf_") // InjectWithPrefix! (prefix : gtf_)
+	Inject(originalFuncMap, false, "gtf_") // InjectWithPrefix! (prefix : gtf_)
 
 	// Check if Inject function does not overwrite the original functions which have same names.
 	CustomParseTest(originalFuncMap, &buffer, "{{ \"The Go Programming Language\" | length }}", "")

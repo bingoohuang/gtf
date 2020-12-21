@@ -11,22 +11,27 @@ import (
 	"strings"
 	textTemplate "text/template"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 var striptagsRegexp = regexp.MustCompile("<[^>]*?>")
 
 // recovery will silently swallow all unexpected panics.
 func recovery() {
-	recover()
+	if r := recover(); r != nil {
+		logrus.Warnf("recover from %v", r)
+	}
 }
 
-var GtfTextFuncMap = textTemplate.FuncMap{
-	"replace": func(s1 string, s2 string) string {
+// TextFuncMap defines the text functions map.
+var TextFuncMap = textTemplate.FuncMap{
+	"replace": func(s1, s2 string) string {
 		defer recovery()
 
 		return strings.Replace(s2, s1, "", -1)
 	},
-	"findreplace": func(s1 string, s2 string, s3 string) string {
+	"findreplace": func(s1, s2, s3 string) string {
 		defer recovery()
 
 		return strings.Replace(s3, s1, s2, -1)
@@ -35,7 +40,7 @@ var GtfTextFuncMap = textTemplate.FuncMap{
 		defer recovery()
 		return strings.Title(s)
 	},
-	"default": func(arg interface{}, value interface{}) interface{} {
+	"default": func(arg, value interface{}) interface{} {
 		defer recovery()
 
 		v := reflect.ValueOf(value)
@@ -189,7 +194,7 @@ var GtfTextFuncMap = textTemplate.FuncMap{
 
 		return bits[1]
 	},
-	"yesno": func(yes string, no string, value bool) string {
+	"yesno": func(yes, no string, value bool) string {
 		defer recovery()
 
 		if value {
@@ -280,8 +285,10 @@ var GtfTextFuncMap = textTemplate.FuncMap{
 	"apnumber": func(value interface{}) interface{} {
 		defer recovery()
 
-		name := [10]string{"one", "two", "three", "four", "five",
-			"six", "seven", "eight", "nine"}
+		name := [10]string{
+			"one", "two", "three", "four", "five",
+			"six", "seven", "eight", "nine",
+		}
 
 		v := reflect.ValueOf(value)
 		switch v.Kind() {
@@ -443,39 +450,31 @@ var GtfTextFuncMap = textTemplate.FuncMap{
 	},
 }
 
-var GtfFuncMap = htmlTemplate.FuncMap(GtfTextFuncMap)
+// HtmlFuncMap defines the html template functions map.
+var HtmlFuncMap = htmlTemplate.FuncMap(TextFuncMap)
 
-// gtf.New is a wrapper function of template.New(https://golang.org/pkg/html/template/#New).
+// NewHtmlTemplate is a wrapper function of template.New(https://golang.org/pkg/html/template/#New).
 // It automatically adds the gtf functions to the template's function map
 // and returns template.Template(http://golang.org/pkg/html/template/#Template).
-func New(name string) *htmlTemplate.Template {
-	return htmlTemplate.New(name).Funcs(GtfFuncMap)
+func NewHtmlTemplate(name string) *htmlTemplate.Template {
+	return htmlTemplate.New(name).Funcs(HtmlFuncMap)
 }
 
-// gtf.Inject injects gtf functions into the passed FuncMap.
+// NewTextTemplate is a wrapper function of template.New(https://golang.org/pkg/text/template/#New).
+// It automatically adds the gtf functions to the template's function map
+// and returns template.Template(http://golang.org/pkg/text/template/#Template).
+func NewTextTemplate(name string) *textTemplate.Template {
+	return textTemplate.New(name).Funcs(TextFuncMap)
+}
+
+// Inject injects gtf functions into the passed FuncMap.
 // It does not overwrite the original function which have same name as a gtf function.
-func Inject(funcs map[string]interface{}) {
-	for k, v := range GtfFuncMap {
-		if _, ok := funcs[k]; !ok {
-			funcs[k] = v
+func Inject(funcs map[string]interface{}, force bool, prefix string) {
+	for k, v := range TextFuncMap {
+		if force {
+			funcs[prefix+k] = v
+		} else if _, ok := funcs[k]; !ok {
+			funcs[prefix+k] = v
 		}
-	}
-}
-
-// gtf.ForceInject injects gtf functions into the passed FuncMap.
-// It overwrites the original function which have same name as a gtf function.
-func ForceInject(funcs map[string]interface{}) {
-	for k, v := range GtfFuncMap {
-		funcs[k] = v
-	}
-}
-
-// gtf.Inject injects gtf functions into the passed FuncMap.
-// It prefixes the gtf functions with the specified prefix.
-// If there are many function which have same names as the gtf functions,
-// you can use this function to prefix the gtf functions.
-func InjectWithPrefix(funcs map[string]interface{}, prefix string) {
-	for k, v := range GtfFuncMap {
-		funcs[prefix+k] = v
 	}
 }

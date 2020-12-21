@@ -7,7 +7,7 @@ import (
 )
 
 func TextTemplateParseTest(buffer *bytes.Buffer, body string, data interface{}) {
-	tpl := template.New("test").Funcs(GtfTextFuncMap)
+	tpl := template.New("test").Funcs(TextFuncMap)
 	tpl.Parse(body)
 	tpl.Execute(buffer, data)
 }
