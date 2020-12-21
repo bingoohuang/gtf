@@ -187,6 +187,7 @@ you meet any unexpected empty output, [please make an issue](https://github.com/
 
 ### Index
 
+* [contains](#contains)
 * [replace](#replace)
 * [findreplace](#findreplace)
 * [default](#default)
@@ -216,6 +217,15 @@ you meet any unexpected empty output, [please make an issue](https://github.com/
 * [random](#random)
 * [striptags](#striptags)
 
+#### contains
+
+Detect an elements is contained as a struct field, map property or slice item.
+
+* supported value types : struct/map/slice/array
+* supported argument types : string
+
+`{{if contains . "FieldA"}}FieldA:{{.FieldA}}{{end}}`
+
 #### replace
 
 Removes all values of arg from the given string.
@@ -223,9 +233,7 @@ Removes all values of arg from the given string.
 * supported value types : string
 * supported argument types : string
 
-```
-{{ value | replace " " }}
-```
+`{{ value | replace " " }}`
 
 If value is "The Go Programming Language", the output will be "TheGoProgrammingLanguage".
 
@@ -236,9 +244,7 @@ Replaces all instances of the first argument with the second.
 * supported value types : string
 * supported argument types : string
 
-```
-{{ value | findreplace " " "-" }}
-```
+`{{ value | findreplace " " "-" }}`
 
 If value is "The Go Programming Language", the output will be "The-Go-Programming-Language".
 

@@ -24,8 +24,48 @@ func recovery() {
 	}
 }
 
-// TextFuncMap defines the text functions map.
+// FindInSlice finds an element in the slice.
+func FindInSlice(slice interface{}, f func(value interface{}) bool) int {
+	var s reflect.Value
+
+	if rv, ok := slice.(reflect.Value); ok {
+		s = rv
+	} else {
+		s = reflect.ValueOf(slice)
+	}
+
+	if s.Kind() != reflect.Slice && s.Kind() != reflect.Array {
+		return -1
+	}
+
+	for i := 0; i < s.Len(); i++ {
+		if f(s.Index(i).Interface()) {
+			return i
+		}
+	}
+
+	return -1
+}
+
 var TextFuncMap = textTemplate.FuncMap{
+	"contains": func(v interface{}, name string) bool {
+		rv := reflect.ValueOf(v)
+		if rv.Kind() == reflect.Ptr {
+			rv = rv.Elem()
+		}
+
+		switch rv.Kind() {
+		case reflect.Map:
+			return rv.MapIndex(reflect.ValueOf(name)).IsValid()
+		case reflect.Struct:
+			return rv.FieldByName(name).IsValid()
+		case reflect.Slice, reflect.Array:
+			f := func(v interface{}) bool { return v == name }
+			return FindInSlice(rv, f) >= 0
+		}
+
+		return false
+	},
 	"replace": func(s1, s2 string) string {
 		defer recovery()
 

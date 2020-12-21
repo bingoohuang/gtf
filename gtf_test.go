@@ -5,7 +5,36 @@ import (
 	"html/template"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
+
+func TestContains(t *testing.T) {
+	tpl, _ := NewTextTemplate("").Parse(`{{if contains . "FieldA"}}FieldA:{{.FieldA}}{{else}}NotFound{{end}}`)
+	var buf bytes.Buffer
+	tpl.Execute(&buf, map[string]string{})
+	assert.Equal(t, "NotFound", buf.String())
+
+	buf.Reset()
+	tpl.Execute(&buf, map[string]string{"FieldA": "Hello"})
+	assert.Equal(t, "FieldA:Hello", buf.String())
+
+	buf.Reset()
+	tpl.Execute(&buf, []string{"FieldA"})
+	assert.Equal(t, "FieldA:", buf.String())
+
+	buf.Reset()
+	tpl.Execute(&buf, [1]string{"FieldA"})
+	assert.Equal(t, "FieldA:", buf.String())
+
+	buf.Reset()
+	tpl.Execute(&buf, []string{"FieldB"})
+	assert.Equal(t, "NotFound", buf.String())
+
+	buf.Reset()
+	tpl.Execute(&buf, [1]string{"FieldB"})
+	assert.Equal(t, "NotFound", buf.String())
+}
 
 func TestRecover(t *testing.T) {
 	f := func() string {
