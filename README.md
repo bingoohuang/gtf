@@ -705,3 +705,7 @@ The final goal is building a ultimate set which contains hundreds of useful temp
 ## Contributing
 
 I love pull requests :) You can add any useful template functions by submitting a pull request!
+
+## Giant shoulders
+
+1. [Sprig: Template functions for Go templates](https://github.com/Masterminds/sprig)
